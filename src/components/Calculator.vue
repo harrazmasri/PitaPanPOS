@@ -55,7 +55,7 @@ defineExpose({
 
         <!-- Discount Selectors -->
         <div class="w-full h-[50px] flex-none flex cursor-pointer border-t border-gray-200">
-            <button v-for="d in [0.25, 0.50, 0.75]" 
+            <button v-for="d in [0.1, 0.25, 0.50, 0.75, .9]" 
                 @click="props.setDiscount(d)"
                 :class="['w-1/3 h-full flex items-center justify-center transition text-sm font-bold border-r border-gray-200', 
                 props.discount === d ? 'bg-red-600 text-white' : 'bg-red-50 hover:bg-red-100']">

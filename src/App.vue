@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import ProductComp from './components/Product.vue';
 import Calculator from './components/Calculator.vue';
 import Checkout from './components/Checkout.vue';
 import Success from './components/Success.vue';
 import TransactionLog from './components/TransactionLog.vue';
+import CreateProduct from './components/CreateProduct.vue';
+import { collection, deleteDoc, doc, getDocs, orderBy, query, where } from 'firebase/firestore/lite';
+import { db } from './firebase';
+import DeleteProduct from './components/DeleteProduct.vue';
 
 export interface Product {
 	image: string,
@@ -18,26 +22,15 @@ export interface Product {
 // 	finalTotal: number,
 // } | null>(null);
 
-const productData = ref<Product[]>([
-	{
-		image: 'https://thecookingfoodie.com/wp-content/uploads/2025/11/viral-doner-kebab-recipe-500x375.jpg',
-		name: 'Kebab Biasa',
-		price: 600,
-		quantity: 0,
-	},
-	{
-		image: 'https://thecookingfoodie.com/wp-content/uploads/2025/11/viral-doner-kebab-recipe-500x375.jpg',
-		name: 'Kebab Special',
-		price: 1200,
-		quantity: 0,
-	},
-]);
-
+const productData = ref<Product[]>([]);
 const discount = ref(0); // 0.25, 0.50 etc.
 const isCheckoutOpen = ref(false);
 const isSuccessOpen = ref(false);
 const isTransactionlogOpen = ref(false);
+const isCreateProductOpen = ref(false);
+const isDeleteProductOpen = ref(false);
 const isTransactionSuccess = ref(false);
+const chosenProductName = ref<string | null>(null);
 
 const addQuantity = (index: number) => {
 	const product = productData.value[index];
@@ -73,11 +66,52 @@ const toggleTransactionLog = () => {
 	isTransactionlogOpen.value = !isTransactionlogOpen.value;
 }
 
+const toggleCreateProduct = () => {
+	isCreateProductOpen.value = !isCreateProductOpen.value;
+}
+
+const toggleDeleteProduct = () => {
+	isDeleteProductOpen.value = !isDeleteProductOpen.value;
+}
+
+const handleChosenProductName = (value: string) => {
+	chosenProductName.value = value;
+}
+
 const resetQuantity = () => {
 	productData.value.forEach((item) => {
 		item.quantity = 0;
 	});
 }
+
+const fetchProducts = async () => {
+    try {
+        const productCollection = collection(db, 'products');
+
+        const q = query(productCollection, orderBy('name', 'asc'));
+
+        const querySnapshot = await getDocs(q);
+
+        const fetchedData = querySnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                image: data.image,
+                name: data.name,
+                price: (data.priceCents || 0), 
+                quantity: 0,
+            };
+        });
+
+        productData.value = fetchedData;
+    } catch (error) {
+        console.error("Error fetching products:", error);
+    }
+};
+
+onMounted(() => {
+	fetchProducts();
+});
 </script>
 
 <template>
@@ -87,6 +121,10 @@ const resetQuantity = () => {
 				:productData="productData" 
 				:addQuantity="addQuantity"
 				@toggle-transaction-log="toggleTransactionLog"
+				@toggle-create-product="toggleCreateProduct"
+				:fetchProducts="fetchProducts"
+				@chosenProductName="handleChosenProductName"
+				@toggle-delete-product="toggleDeleteProduct"
 			/>
 		</div>
 		<div class="w-2/5 border-red-700 border-l h-full">
@@ -122,5 +160,18 @@ const resetQuantity = () => {
 	<TransactionLog 
 		v-if="isTransactionlogOpen"
 		@toggle-transaction-log="toggleTransactionLog"
+	/>
+
+	<CreateProduct 
+		v-if="isCreateProductOpen"
+		@toggle-create-product="toggleCreateProduct"
+		:fetchProducts="fetchProducts"
+	/>
+
+	<DeleteProduct 
+		v-if="isDeleteProductOpen"
+		@toggle-delete-product="toggleDeleteProduct"
+		:productName="chosenProductName"
+		:fetchProducts="fetchProducts"
 	/>
 </template>
