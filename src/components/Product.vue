@@ -12,6 +12,7 @@ const props = defineProps<{
 const emit = defineEmits<{
     (e: 'toggle-transaction-log'): void;
     (e: 'toggle-create-product'): void;
+    (e: 'toggle-delete-product'): void;
     (e: 'chosenProductName', value: string): void;
 }>();
 
