@@ -44,13 +44,13 @@ const deleteModal = (name: string) => {
                 No products found.
             </div>
 
-            <div v-for="(product, index) in props.productData"  class="relative w-fit rounded-[10px] overflow-clip border border-gray-200 hover:border-red-500">
+            <div v-for="(product, index) in props.productData"  class="relative w-full aspect-square rounded-[10px] overflow-clip border border-gray-200 hover:border-red-500">
                 <div @click="deleteModal(product.name)" class="absolute z-30 p-1 top-0 right-0 bg-red-500 w-[40px] h-[40px] cursor-pointer rounded-bl-[10px] flex items-center justify-center transition">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24"><path fill="#fff" d="M17 4h5v2h-2v15a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6H2V4h5V2h10zM9 9v8h2V9zm4 0v8h2V9z"/></svg>
                 </div>
                 <div
                     @click="props.addQuantity(index)"
-                    class="relative w-full aspect-square flex gap-2 flex flex-col bg-white hover:brightness-75 transition cursor-pointer"
+                    class="relative w-full flex gap-2 flex flex-col bg-white hover:brightness-75 transition cursor-pointer"
                 >
                     <img class="w-full aspect-4/3 object-cover" :src="product.image" alt="">
                     <div class="w-full p-3 flex flex-col ">
