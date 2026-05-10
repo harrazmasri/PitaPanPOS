@@ -4,6 +4,7 @@ import ProductComp from './components/Product.vue';
 import Calculator from './components/Calculator.vue';
 import Checkout from './components/Checkout.vue';
 import Success from './components/Success.vue';
+import TransactionLog from './components/TransactionLog.vue';
 
 export interface Product {
 	image: string,
@@ -35,6 +36,7 @@ const productData = ref<Product[]>([
 const discount = ref(0); // 0.25, 0.50 etc.
 const isCheckoutOpen = ref(false);
 const isSuccessOpen = ref(false);
+const isTransactionlogOpen = ref(false);
 const isTransactionSuccess = ref(false);
 
 const addQuantity = (index: number) => {
@@ -67,6 +69,10 @@ const closeSuccess = () => {
 	isSuccessOpen.value = false;
 }
 
+const toggleTransactionLog = () => {
+	isTransactionlogOpen.value = !isTransactionlogOpen.value;
+}
+
 const resetQuantity = () => {
 	productData.value.forEach((item) => {
 		item.quantity = 0;
@@ -77,7 +83,11 @@ const resetQuantity = () => {
 <template>
 	<div class="relative w-screen h-screen flex">
 		<div class="w-3/5">
-			<ProductComp :productData="productData" :addQuantity="addQuantity" />
+			<ProductComp 
+				:productData="productData" 
+				:addQuantity="addQuantity"
+				@toggle-transaction-log="toggleTransactionLog"
+			/>
 		</div>
 		<div class="w-2/5 border-red-700 border-l h-full">
 			<Calculator 
@@ -107,5 +117,10 @@ const resetQuantity = () => {
 		@close-success="closeSuccess"
 		:isTransactionSuccess="isTransactionSuccess"
 		:resetQuantity="resetQuantity"
+	/>
+
+	<TransactionLog 
+		v-if="isTransactionlogOpen"
+		@toggle-transaction-log="toggleTransactionLog"
 	/>
 </template>

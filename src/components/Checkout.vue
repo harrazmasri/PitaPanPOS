@@ -17,14 +17,14 @@ const emit = defineEmits<{
 
 const finalTotal = computed(() => {
     const subtotal = props.productData.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-    return ((subtotal * (1 - props.discount)) / 100).toFixed(2);
+    return subtotal * (1 - props.discount);
 });
 
 const saveOrder = async (isSuccess: boolean) => {
     try {
         const docRef = await addDoc(collection(db, "orders"), {
             items: props.productData.filter(p => p.quantity > 0),
-            total: finalTotal.value,
+            totalCents: finalTotal.value,
             timestamp: new Date(),
             isSuccess: isSuccess,
         });
@@ -79,7 +79,7 @@ const saveOrder = async (isSuccess: boolean) => {
                     </div>
                     <div class="flex justify-between items-center pt-2 border-t border-gray-200">
                         <span class="text-lg font-bold">Total</span>
-                        <span class="text-3xl font-black">RM {{ finalTotal }}</span>
+                        <span class="text-3xl font-black">RM {{ (finalTotal / 100).toFixed(2) }}</span>
                     </div>
                 </div>
             </div>

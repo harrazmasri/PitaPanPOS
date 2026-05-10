@@ -18,7 +18,7 @@ const subtotal = computed(() => {
 
 const finalTotal = computed(() => {
     const multiplier = 1 - props.discount;
-    return (subtotal.value * multiplier) / 100;
+    return (subtotal.value * multiplier);
 });
 
 defineExpose({
@@ -66,7 +66,7 @@ defineExpose({
         <!-- Final Calculation Display -->
         <div class="flex-none w-full bg-gray-50 border-t border-gray-300 py-8 px-7 text-right">
             <p v-if="props.discount > 0" class="text-sm text-red-600 line-through">Subtotal: RM {{ (subtotal / 100).toFixed(2) }}</p>
-            <h1 class="text-5xl font-bold">RM {{ finalTotal.toFixed(2) }}</h1>
+            <h1 class="text-5xl font-bold">RM {{ (finalTotal / 100).toFixed(2) }}</h1>
         </div>
 
         <div @click="emit('open-checkout')" class="w-full h-[100px] flex-none flex cursor-pointer bg-red-700 text-white items-center justify-center gap-3 text-2xl hover:bg-red-800 transition uppercase font-black">
