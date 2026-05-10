@@ -1,25 +1,56 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { Product } from '@/App.vue';
+import { addDoc, collection } from 'firebase/firestore/lite';
+import { db } from '@/firebase';
 
 const props = defineProps<{
     productData: Product[],
     discount: number
 }>();
 
-defineEmits(['close']);
+const emit = defineEmits<{
+    (e: 'close'): void;
+    (e: 'open-success', isSuccess: boolean): void;
+    (e: 'close-success'): void;
+}>();
 
 const finalTotal = computed(() => {
     const subtotal = props.productData.reduce((acc, item) => acc + (item.price * item.quantity), 0);
     return ((subtotal * (1 - props.discount)) / 100).toFixed(2);
 });
+
+const saveOrder = async (isSuccess: boolean) => {
+    try {
+        const docRef = await addDoc(collection(db, "orders"), {
+            items: props.productData.filter(p => p.quantity > 0),
+            total: finalTotal.value,
+            timestamp: new Date(),
+            isSuccess: isSuccess,
+        });
+        console.log("Order saved with ID: ", docRef.id);
+
+        emit('open-success', isSuccess)
+
+        setTimeout(() => {
+            emit('close');
+        }, 15000)
+
+    } catch (e) {
+        console.error("Error adding document: ", e);
+    }
+}
 </script>
 
 <template>
-    <div class="fixed top-0 left-0 z-50 w-screen h-screen bg-black/60 backdrop-blur-sm flex justify-center items-center gap-7">
-        <!-- Close Button -->
-        <div @click="$emit('close')" class="absolute z-[51] top-5 right-5 hover:bg-white/20 w-[50px] h-[50px] cursor-pointer rounded-full flex items-center justify-center transition">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="#fff" d="M10.586 12L2.793 4.207l1.414-1.414L12 10.586l7.793-7.793l1.414 1.414L13.414 12l7.793 7.793l-1.414 1.414L12 13.414l-7.793 7.793l-1.414-1.414z"/></svg>
+    <div
+        class="fixed top-0 left-0 z-50 w-screen h-screen bg-black/60 backdrop-blur-sm flex justify-center items-center gap-7">
+        <div @click="$emit('close')"
+            class="absolute z-[51] top-5 right-5 hover:bg-white/20 w-[50px] h-[50px] cursor-pointer rounded-full flex items-center justify-center transition">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
+                <path fill="#fff"
+                    d="M10.586 12L2.793 4.207l1.414-1.414L12 10.586l7.793-7.793l1.414 1.414L13.414 12l7.793 7.793l-1.414 1.414L12 13.414l-7.793 7.793l-1.414-1.414z" />
+            </svg>
         </div>
 
         <div class="w-fit h-fit flex flex-col gap-4">
@@ -30,7 +61,8 @@ const finalTotal = computed(() => {
 
                 <div class="grow overflow-y-auto">
                     <template v-for="product in props.productData">
-                        <div v-if="product.quantity > 0" class="flex justify-between items-center p-4 border-b border-gray-100">
+                        <div v-if="product.quantity > 0"
+                            class="flex justify-between items-center p-4 border-b border-gray-100">
                             <div>
                                 <p class="font-bold text-gray-800">{{ product.name }}</p>
                                 <p class="text-xs text-gray-500">{{ product.quantity }}x @ RM {{ (product.price / 100).toFixed(2) }}</p>
@@ -51,22 +83,25 @@ const finalTotal = computed(() => {
                     </div>
                 </div>
             </div>
-            
+
             <div class="w-full flex gap-3">
-                <button @click="$emit('close')" class="w-1/2 p-4 rounded-xl bg-gray-200 font-bold">Failed</button>
-                <button class="w-1/2 p-4 rounded-xl bg-green-600 text-white font-bold">Success</button>
+                <button @click="saveOrder(false)"
+                    class="w-1/2 p-4 rounded-xl bg-gray-200 font-bold cursor-pointer hover:opacity-75 transition">Failed</button>
+                <button @click="saveOrder(true)"
+                    class="w-1/2 p-4 rounded-xl bg-green-600 text-white font-bold cursor-pointer hover:opacity-75 transition">Success</button>
             </div>
         </div>
-        
+
         <!-- QR Panel -->
         <div class="w-[300px] bg-white rounded-[20px] shadow-2xl overflow-clip">
-             <div class="bg-red-600 py-4 px-6 text-white text-center font-bold">DuitNow QR</div>
-             <div class="pt-2 pb-8 px-2">
-                <div class="w-full bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300 ">
+            <div class="bg-red-600 py-4 px-6 text-white text-center font-bold">DuitNow QR</div>
+            <div class="pt-2 pb-8 px-2">
+                <div
+                    class="w-full bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300 ">
                     <img src="/public/qr_harraz.jpeg" alt="">
                 </div>
                 <p class="text-center mt-4 text-xs text-gray-400">Scan to pay RM {{ finalTotal }}</p>
-             </div>
+            </div>
         </div>
     </div>
 </template>

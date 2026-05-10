@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import ProductComp from './components/Product.vue';
 import Calculator from './components/Calculator.vue';
 import Checkout from './components/Checkout.vue';
+import Success from './components/Success.vue';
 
 export interface Product {
 	image: string,
@@ -10,6 +11,11 @@ export interface Product {
 	price: number, // cents
 	quantity: number,
 }
+
+// const CalculatorComp = ref<{
+// 	subtotal: number,
+// 	finalTotal: number,
+// } | null>(null);
 
 const productData = ref<Product[]>([
 	{
@@ -28,6 +34,8 @@ const productData = ref<Product[]>([
 
 const discount = ref(0); // 0.25, 0.50 etc.
 const isCheckoutOpen = ref(false);
+const isSuccessOpen = ref(false);
+const isTransactionSuccess = ref(false);
 
 const addQuantity = (index: number) => {
 	const product = productData.value[index];
@@ -44,12 +52,25 @@ const subtractQuantity = (index: number) => {
 }
 
 const setDiscount = (val: number) => {
-	// If clicking the same discount again, toggle it off
 	discount.value = discount.value === val ? 0 : val;
 }
 
 const toggleCheckout = () => {
 	isCheckoutOpen.value = !isCheckoutOpen.value;
+}
+
+const openSuccess = (status: boolean) => {
+	isSuccessOpen.value = true;
+	isTransactionSuccess.value = status;
+}
+const closeSuccess = () => {
+	isSuccessOpen.value = false;
+}
+
+const resetQuantity = () => {
+	productData.value.forEach((item) => {
+		item.quantity = 0;
+	});
 }
 </script>
 
@@ -59,10 +80,32 @@ const toggleCheckout = () => {
 			<ProductComp :productData="productData" :addQuantity="addQuantity" />
 		</div>
 		<div class="w-2/5 border-red-700 border-l h-full">
-			<Calculator :productData="productData" :discount="discount" :addQuantity="addQuantity"
-				:subtractQuantity="subtractQuantity" :setDiscount="setDiscount" @open-checkout="toggleCheckout" />
+			<Calculator 
+				ref="CalculatorComp" 
+				:productData="productData" 
+				:discount="discount" 
+				:addQuantity="addQuantity"
+				:subtractQuantity="subtractQuantity" 
+				:setDiscount="setDiscount" 
+				@open-checkout="toggleCheckout" 
+			/>
 		</div>
 	</div>
 
-	<Checkout v-if="isCheckoutOpen" :productData="productData" :discount="discount" @close="toggleCheckout" />
+	<Checkout 
+		v-if="isCheckoutOpen" 
+		:productData="productData" 
+		:discount="discount" 
+		@close="toggleCheckout" 
+		@open-success="(status) => openSuccess(status)"
+		@close-success="closeSuccess"
+	/>
+
+	<Success 
+		v-if="isSuccessOpen"
+		@close="toggleCheckout" 
+		@close-success="closeSuccess"
+		:isTransactionSuccess="isTransactionSuccess"
+		:resetQuantity="resetQuantity"
+	/>
 </template>

@@ -20,6 +20,11 @@ const finalTotal = computed(() => {
     const multiplier = 1 - props.discount;
     return (subtotal.value * multiplier) / 100;
 });
+
+defineExpose({
+    finalTotal,
+    subtotal,
+});
 </script>
 
 <template>
